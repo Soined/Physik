@@ -43,16 +43,54 @@ namespace MathExtensionZ
         /// Use this function to not offset your boxCollider. It will return a point closest on the box that surrounds the collider. 
         /// </summary>
         /// <param name="boxCollider"></param>
-        /// <param name="position"> the position from which you want to cast the collider</param>
+        /// <param name="positionNextFrame"> the position from which you want to cast the collider</param>
         /// <param name="point">the point from which we get the closest point on bounds of the collider</param>
         /// <returns></returns>
-        public static Vector3 FindNearestPointOnBoxBounds(BoxCollider boxCollider, Vector3 position, Vector3 point)
+        public static Vector3 FindNearestPointOnBoxBounds(BoxCollider boxCollider, Vector3 positionNextFrame, Vector3 differencePosToLastFrame, Vector3 point, Vector3 pushDirection)
         {
+            //We move our box collider to the position that we need it at.
             Vector3 originalCenter = boxCollider.center;
-            boxCollider.center = position;
-            Vector3 closestPoint = boxCollider.ClosestPointOnBounds(point);
+            boxCollider.center = differencePosToLastFrame;
+
+            Vector3 returnPoint;
+            Vector3 boxBoundsInWorld;
+            
+
+            if(pushDirection.x >= 0 && pushDirection.y >= 0 && pushDirection.z >= 0)
+            {
+                //boxBoundsInWorld = boxCollider.transform.TransformPoint(boxCollider.bounds.min);
+                boxBoundsInWorld = boxCollider.bounds.min;
+                returnPoint = new Vector3(
+                    pushDirection.x * boxBoundsInWorld.x,
+                    pushDirection.y * boxBoundsInWorld.y,
+                    pushDirection.z * boxBoundsInWorld.z); 
+            } else
+            {
+                //boxBoundsInWorld = boxCollider.transform.TransformPoint(boxCollider.bounds.max);
+                boxBoundsInWorld = boxCollider.bounds.max;
+                returnPoint = new Vector3(
+                    pushDirection.x * boxBoundsInWorld.x,
+                    pushDirection.y * boxBoundsInWorld.y,
+                    pushDirection.z * boxBoundsInWorld.z);
+            }
+
+            //We set everything we didnt push back to its original point
+            if (returnPoint.x == 0) returnPoint.x = point.x;
+            if (returnPoint.y == 0) returnPoint.y = point.y;
+            if (returnPoint.z == 0) returnPoint.z = point.z;
+
+            //We move our boxCollider back to its original center
             boxCollider.center = originalCenter;
-            return closestPoint;
+
+            return returnPoint;
+
+
+
+            //Vector3 originalCenter = boxCollider.center;
+            //boxCollider.center = position;
+            //Vector3 closestPoint = boxCollider.ClosestPointOnBounds(point);
+            //boxCollider.center = originalCenter;
+            //return closestPoint;
         }
 
         public static float GetBoxSizeTowardsPoint(BoxCollider boxCollider, Vector3 position, Vector3 point)

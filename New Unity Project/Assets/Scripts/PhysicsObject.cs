@@ -215,7 +215,7 @@ public class PhysicsObject : MonoBehaviour
                 //we need to do this because we haven't actually moved so we the boxColliders position is still wrong.
                 Vector3 collisionDirection = (closestPointOnOther - toCheckAt).normalized;
                 Vector3 pushDirection = MathZ.GetMainDirectionForBox(boxCol, collisionDirection);
-                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt - transform.position, closestPointOnOther);
+                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt, toCheckAt - transform.position, closestPointOnOther, pushDirection);
 
                 Vector3 pushVector = pushDirection * (pointOnCollider - closestPointOnOther).magnitude;
 
