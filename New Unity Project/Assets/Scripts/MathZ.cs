@@ -111,21 +111,21 @@ namespace MathExtensionZ
 
             if (distanceX < distanceY && distanceX < distanceZ)
             {
-                if (direction.x > 0) return boxCollider.transform.right;
+                if (direction.x > 0) return -boxCollider.transform.right;
 
-                return -boxCollider.transform.right;
+                return boxCollider.transform.right;
             }
             else if (distanceZ <= distanceX && distanceZ < distanceY)
             {
-                if (direction.z > 0) return boxCollider.transform.forward;
+                if (direction.z > 0) return -boxCollider.transform.forward;
 
-                return -boxCollider.transform.forward;
+                return boxCollider.transform.forward;
             }
             else
             {
-                if (direction.y > 0) return boxCollider.transform.up;
+                if (direction.y > 0) return -boxCollider.transform.up;
 
-                return -boxCollider.transform.up;
+                return boxCollider.transform.up;
             }
         }
 

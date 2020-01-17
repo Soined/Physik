@@ -211,15 +211,13 @@ public class PhysicsObject : MonoBehaviour
                 //we will also find our own collider or triggers in which case we just skip it
                 if (collider.isTrigger || collider == col) continue;
 
-                Vector3 closestPointOnOther = collider.ClosestPoint(toCheckAt);
+                Vector3 closestPointOnOther = collider.ClosestPointOnBounds(toCheckAt);
                 //we need to do this because we haven't actually moved so we the boxColliders position is still wrong.
                 Vector3 collisionDirection = (closestPointOnOther - toCheckAt).normalized;
                 Vector3 pushDirection = MathZ.GetMainDirectionForBox(boxCol, collisionDirection);
-                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt, closestPointOnOther);
+                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt - transform.position, closestPointOnOther);
 
                 Vector3 pushVector = pushDirection * (pointOnCollider - closestPointOnOther).magnitude;
-
-
 
 
                 //Vector3 closestPointOnUs = MathZ.FindNearestPointOnBox(boxCol, toCheckAt, closestPointOnOther);
