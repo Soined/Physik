@@ -209,13 +209,13 @@ public class PhysicsObject : MonoBehaviour
                 //If we only find only our own collider there is no reason to keep going for this position
                 if (collider == col && collidingObjects.Length == 1) break;
                 //we will also find our own collider or triggers in which case we just skip it
-                if (collider.isTrigger || collider == col) continue;
+                if (collider.isTrigger || collider == col || collider.tag == "Player") continue;
 
                 Vector3 closestPointOnOther = collider.ClosestPointOnBounds(toCheckAt);
                 //we need to do this because we haven't actually moved so we the boxColliders position is still wrong.
                 Vector3 collisionDirection = (closestPointOnOther - toCheckAt).normalized;
                 Vector3 pushDirection = MathZ.GetMainDirectionForBox(boxCol, collisionDirection);
-                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt, toCheckAt - transform.position, closestPointOnOther, pushDirection);
+                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt - transform.position, closestPointOnOther, pushDirection);
 
                 Vector3 pushVector = pushDirection * (pointOnCollider - closestPointOnOther).magnitude;
 
@@ -226,10 +226,10 @@ public class PhysicsObject : MonoBehaviour
                 //Vector3 pushVector = collisionVector - (MathZ.GetBoxSizeTowardsPoint(boxCol, toCheckAt, closestPointOnUs) * collisionVector.normalized);
                 //Vector3 pushVector = collisionVector - (MathZ.GetBoxDistanceTowardsPoint(boxCol, toCheckAt, closestPointOnUs) * collisionVector.normalized);
 
-                Debug.Log($"pushVector: {pushVector}");
+                //Debug.Log($"pushVector: {pushVector}");
+                toCheckAt += pushVector; // we actually push us out of the other collider with this.
 
-                toCheckAt += pushVector;
-
+                //We tell our script to not check for any remaining  OverlapBoxes because we already hit something.
                 hitCollider = true;
             }
         }

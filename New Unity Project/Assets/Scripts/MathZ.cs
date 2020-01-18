@@ -46,7 +46,7 @@ namespace MathExtensionZ
         /// <param name="positionNextFrame"> the position from which you want to cast the collider</param>
         /// <param name="point">the point from which we get the closest point on bounds of the collider</param>
         /// <returns></returns>
-        public static Vector3 FindNearestPointOnBoxBounds(BoxCollider boxCollider, Vector3 positionNextFrame, Vector3 differencePosToLastFrame, Vector3 point, Vector3 pushDirection)
+        public static Vector3 FindNearestPointOnBoxBounds(BoxCollider boxCollider, Vector3 differencePosToLastFrame, Vector3 point, Vector3 pushDirection)
         {
             //We move our box collider to the position that we need it at.
             Vector3 originalCenter = boxCollider.center;
@@ -85,7 +85,7 @@ namespace MathExtensionZ
             return returnPoint;
 
 
-
+            //old bad code
             //Vector3 originalCenter = boxCollider.center;
             //boxCollider.center = position;
             //Vector3 closestPoint = boxCollider.ClosestPointOnBounds(point);
