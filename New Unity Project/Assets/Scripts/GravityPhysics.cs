@@ -12,13 +12,31 @@ public class GravityPhysics : PhysicsComponent
     [Tooltip("The object is unable to fall faster than this.")]
     private float maxGravityForce = 3f;
 
+    [SerializeField]
+    private bool startWithGravEnabled = true;
+
+    [SerializeField]
+    private Material flippedMaterial;
+
+    private Material originalMaterial;
+    private MeshRenderer renderer;
+
     private float fallTime = 0f;
+
+    private Vector3 gravityDirection = Vector3.up;
 
     //These will be changed by public functions from other classes.
     private bool gravityEnabled = true;
     private bool disabledForTime = false;
     private float timeUntilGravityEnabled = 0f;
     private float _timeUntilGravityEnabled = 0f;
+
+    private void Start()
+    {
+        gravityEnabled = startWithGravEnabled;
+        renderer = PhysicsObject.body.GetComponent<MeshRenderer>();
+        originalMaterial = renderer.material;
+    }
 
     public override Vector3 ApplyPhysics(Vector3 currentPosition)
     {
@@ -33,7 +51,7 @@ public class GravityPhysics : PhysicsComponent
             fallTime = 0f;
         }
 
-        currentPosition += Vector3.up * Mathf.Max(-gravityForce * Mathf.Pow(fallTime, 2) * Time.deltaTime, -maxGravityForce);
+        currentPosition += gravityDirection * Mathf.Max(-gravityForce * Mathf.Pow(fallTime, 2) * Time.deltaTime, -maxGravityForce);
 
         return currentPosition;
     }
@@ -80,6 +98,18 @@ public class GravityPhysics : PhysicsComponent
     public bool IsEnabled()
     {
         return gravityEnabled;
+    }
+
+    public void FlipGravity()
+    {
+        gravityDirection *= -1;
+        if(gravityDirection == Vector3.up)
+        {
+            renderer.material = originalMaterial;
+        } else
+        {
+            renderer.material = flippedMaterial;
+        }
     }
 
     protected override void OnModifiersChanged(PhysicsModifier physicsModifier, bool added)

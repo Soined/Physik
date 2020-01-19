@@ -163,6 +163,7 @@ public class PhysicsObject : MonoBehaviour
         Ray ray = new Ray(toCheckAt, Vector3.down);
         //Note: Do better ground collision checking later (standing on an edge won't count as being grounded
         collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, capCol.height / 2 + .01f);
+        if (collisionInfo.grounded) collisionInfo.standingOn = hit.collider.gameObject;
 
         return toCheckAt;
     }
@@ -199,7 +200,7 @@ public class PhysicsObject : MonoBehaviour
     {
         for (int i = 0; i < collisionChecksPerFrame; i++)
         {
-            var collidingObjects = Physics.OverlapBox(toCheckAt, boxCol.bounds.extents);
+            var collidingObjects = Physics.OverlapBox(toCheckAt, boxCol.bounds.extents, transform.rotation);
 
             //Just a potential future bugfix if we wouldn't find out own collider anymore to save performance
             if (collidingObjects.Length == 0) break;
@@ -215,18 +216,10 @@ public class PhysicsObject : MonoBehaviour
                 //we need to do this because we haven't actually moved so we the boxColliders position is still wrong.
                 Vector3 collisionDirection = (closestPointOnOther - toCheckAt).normalized;
                 Vector3 pushDirection = MathZ.GetMainDirectionForBox(boxCol, collisionDirection);
-                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt - transform.position, closestPointOnOther, pushDirection);
+                Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt, closestPointOnOther, pushDirection);
 
                 Vector3 pushVector = pushDirection * (pointOnCollider - closestPointOnOther).magnitude;
 
-
-                //Vector3 closestPointOnUs = MathZ.FindNearestPointOnBox(boxCol, toCheckAt, closestPointOnOther);
-                //Vector3 collisionVector = closestPointOnOther - closestPointOnUs;
-                ////After this we need to calculate the distance we need to be pushed so our collider will be outside of the other collider in the next Frame.
-                //Vector3 pushVector = collisionVector - (MathZ.GetBoxSizeTowardsPoint(boxCol, toCheckAt, closestPointOnUs) * collisionVector.normalized);
-                //Vector3 pushVector = collisionVector - (MathZ.GetBoxDistanceTowardsPoint(boxCol, toCheckAt, closestPointOnUs) * collisionVector.normalized);
-
-                //Debug.Log($"pushVector: {pushVector}");
                 toCheckAt += pushVector; // we actually push us out of the other collider with this.
 
                 //We tell our script to not check for any remaining  OverlapBoxes because we already hit something.
@@ -235,8 +228,12 @@ public class PhysicsObject : MonoBehaviour
         }
         Ray ray = new Ray(toCheckAt, -transform.up);
         //Note: Do better ground collision checking later (standing at an edge won't count as being grounded
-        collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, boxCol.size.y / 2 + .01f);
+        collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, (boxCol.bounds.extents.y) + .01f);
+        Debug.Log($"grounded: {collisionInfo.grounded}");
 
+        if(collisionInfo.grounded) collisionInfo.standingOn = hit.collider.gameObject;
+
+        //Debug.Log($"raylength: {((boxCol.bounds.min.y + toCheckAt.y - transform.position.y)) + .01f}");
         return toCheckAt;
     }
 
@@ -291,6 +288,7 @@ public class PhysicsObject : MonoBehaviour
         }
         Ray ray = new Ray(toCheckAt, Vector3.down);
         collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, sphereCol.radius + .01f);
+        if (collisionInfo.grounded) collisionInfo.standingOn = hit.collider.gameObject;
 
         return toCheckAt;
     }
@@ -331,10 +329,15 @@ public class PhysicsObject : MonoBehaviour
     public struct CollisionInfo
     {
         public bool grounded;
+        /// <summary>
+        /// The GameObject we are currently standing on. Will be null if we are not grounded.
+        /// </summary>
+        public GameObject standingOn;
 
         public void ResetCollisionInfo()
         {
             grounded = false;
+            standingOn = null;
         }
     }
 }

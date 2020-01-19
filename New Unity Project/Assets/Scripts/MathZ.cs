@@ -46,15 +46,14 @@ namespace MathExtensionZ
         /// <param name="positionNextFrame"> the position from which you want to cast the collider</param>
         /// <param name="point">the point from which we get the closest point on bounds of the collider</param>
         /// <returns></returns>
-        public static Vector3 FindNearestPointOnBoxBounds(BoxCollider boxCollider, Vector3 differencePosToLastFrame, Vector3 point, Vector3 pushDirection)
+        public static Vector3 FindNearestPointOnBoxBounds(BoxCollider boxCollider, Vector3 posNextFrame, Vector3 point, Vector3 pushDirection)
         {
             //We move our box collider to the position that we need it at.
             Vector3 originalCenter = boxCollider.center;
-            boxCollider.center = differencePosToLastFrame;
+            boxCollider.center = boxCollider.transform.InverseTransformPoint(posNextFrame);
 
             Vector3 returnPoint;
             Vector3 boxBoundsInWorld;
-            
 
             if(pushDirection.x >= 0 && pushDirection.y >= 0 && pushDirection.z >= 0)
             {
@@ -74,7 +73,7 @@ namespace MathExtensionZ
                     pushDirection.z * boxBoundsInWorld.z);
             }
 
-            //We set everything we didnt push back to its original point
+            //We set everything we didnt push back to our original point to have a straight pushVector
             if (returnPoint.x == 0) returnPoint.x = point.x;
             if (returnPoint.y == 0) returnPoint.y = point.y;
             if (returnPoint.z == 0) returnPoint.z = point.z;
@@ -83,14 +82,6 @@ namespace MathExtensionZ
             boxCollider.center = originalCenter;
 
             return returnPoint;
-
-
-            //old bad code
-            //Vector3 originalCenter = boxCollider.center;
-            //boxCollider.center = position;
-            //Vector3 closestPoint = boxCollider.ClosestPointOnBounds(point);
-            //boxCollider.center = originalCenter;
-            //return closestPoint;
         }
 
         public static float GetBoxSizeTowardsPoint(BoxCollider boxCollider, Vector3 position, Vector3 point)
