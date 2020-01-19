@@ -14,16 +14,20 @@ public class GravityPhysics : PhysicsComponent
 
     [SerializeField]
     private bool startWithGravEnabled = true;
+    [SerializeField]
+    private bool gravitySideways = false;
+    [SerializeField]
+    private bool startWithGravFlipped = false;
 
     [SerializeField]
-    private Material flippedMaterial;
+    private Material upGravityMaterial;
 
-    private Material originalMaterial;
+    private Material downGravityMaterial;
     private MeshRenderer renderer;
 
     private float fallTime = 0f;
 
-    private Vector3 gravityDirection = Vector3.up;
+    private Vector3 gravityDirection = Vector3.down;
 
     //These will be changed by public functions from other classes.
     private bool gravityEnabled = true;
@@ -35,23 +39,34 @@ public class GravityPhysics : PhysicsComponent
     {
         gravityEnabled = startWithGravEnabled;
         renderer = PhysicsObject.body.GetComponent<MeshRenderer>();
-        originalMaterial = renderer.material;
+        downGravityMaterial = renderer.material;
+
+        if(gravitySideways)
+        {
+            gravityDirection = Vector3.back;
+        }
+
+        if (startWithGravFlipped) FlipGravity();
+        else PhysicsObject.ChangeGravityDirection(gravityDirection);
     }
 
     public override Vector3 ApplyPhysics(Vector3 currentPosition)
     {
-        if (!CheckIfGravityIsApplied()) return currentPosition;
-
-        if (!PhysicsObject.collisionInfo.grounded)
+        if (!CheckIfGravityIsApplied())
         {
-            fallTime += Time.deltaTime;
+            return currentPosition;
         }
-        else
+
+        if (PhysicsObject.collisionInfo.grounded || PhysicsObject.collisionInfo.collidingWithPlayer)
         {
             fallTime = 0f;
         }
+        else
+        {
+            fallTime += Time.deltaTime;
+        }
 
-        currentPosition += gravityDirection * Mathf.Max(-gravityForce * Mathf.Pow(fallTime, 2) * Time.deltaTime, -maxGravityForce);
+        currentPosition += -gravityDirection * Mathf.Max(-gravityForce * Mathf.Pow(fallTime, 2) * Time.deltaTime, -maxGravityForce);
 
         return currentPosition;
     }
@@ -103,12 +118,14 @@ public class GravityPhysics : PhysicsComponent
     public void FlipGravity()
     {
         gravityDirection *= -1;
-        if(gravityDirection == Vector3.up)
+        fallTime = 0f;
+        PhysicsObject.ChangeGravityDirection(gravityDirection);
+        if(Mathf.Sign(gravityDirection.x + gravityDirection.y + gravityDirection.z) < 0)
         {
-            renderer.material = originalMaterial;
+            renderer.material = downGravityMaterial;
         } else
         {
-            renderer.material = flippedMaterial;
+            renderer.material = upGravityMaterial;
         }
     }
 

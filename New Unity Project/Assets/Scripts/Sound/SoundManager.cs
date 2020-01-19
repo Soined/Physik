@@ -82,4 +82,8 @@ public class SoundManager : MonoBehaviour
         newSound.loop = loop;
         currentSounds.Add(newSound);
     }
+    public float GetMusicVolume()
+    {
+        return backgroundVolume;
+    }
 }

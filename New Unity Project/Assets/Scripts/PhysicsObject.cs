@@ -20,9 +20,9 @@ public class PhysicsObject : MonoBehaviour
 
     private Collider col;
 
-    private Vector3 currentVelocity;
-
     public CollisionInfo collisionInfo;
+
+    private Vector3 gravityDirection = Vector3.down;
 
     private List<PhysicsComponent> physicsComponents = new List<PhysicsComponent>();
 
@@ -61,6 +61,7 @@ public class PhysicsObject : MonoBehaviour
 
     public void ApplyPhysics()
     {
+        //we need to do this before passing our position to the physics Components
         Vector3 newPosition = transform.position;
 
         foreach (var physicsComponent in physicsComponents)
@@ -68,16 +69,15 @@ public class PhysicsObject : MonoBehaviour
             newPosition = physicsComponent.ApplyPhysics(newPosition);
         }
 
-        ApplyVelocity(ref newPosition);
+        //This will reset all collisionInfo from the last frame right before we check for new collisionInfos in CheckCollision()
+        collisionInfo.ResetCollisionInfo();
 
+        //This will try to move us towards the newPosition calculated from all physicsComponents.
+        //If we happen to find a non-Trigger collider on our way, we will stop right in front of it.
         CheckCollision(ref newPosition);
 
+        //This is where we actually apply our new position
         transform.position = newPosition;
-    }
-
-    private void ApplyVelocity(ref Vector3 position)
-    {
-        //TBD: WAITING FOR PHYSICS VORLESUNG!
     }
 
     private void CheckCollision(ref Vector3 position)
@@ -160,9 +160,11 @@ public class PhysicsObject : MonoBehaviour
                 hitCollider = true; // At this state we only know we hit anything. Could be optimized by returning the pushVector so we know where we hit it.
             }
         }
-        Ray ray = new Ray(toCheckAt, Vector3.down);
+        Ray groundRay = new Ray(toCheckAt, gravityDirection);
+        Ray topRay = new Ray(toCheckAt, -gravityDirection);
         //Note: Do better ground collision checking later (standing on an edge won't count as being grounded
-        collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, capCol.height / 2 + .01f);
+        collisionInfo.grounded = Physics.Raycast(groundRay, out RaycastHit hit, capCol.height / 2 + .01f);
+        collisionInfo.collisionOnTop = Physics.Raycast(topRay, out RaycastHit hit2, capCol.height / 2 + .01f);
         if (collisionInfo.grounded) collisionInfo.standingOn = hit.collider.gameObject;
 
         return toCheckAt;
@@ -210,7 +212,13 @@ public class PhysicsObject : MonoBehaviour
                 //If we only find only our own collider there is no reason to keep going for this position
                 if (collider == col && collidingObjects.Length == 1) break;
                 //we will also find our own collider or triggers in which case we just skip it
-                if (collider.isTrigger || collider == col || collider.tag == "Player") continue;
+                //|| collider.tag == "Player"
+                if (collider.isTrigger || collider == col ) continue;
+
+                if(collider.tag == "Player")
+                {
+                    collisionInfo.collidingWithPlayer = true;
+                }
 
                 Vector3 closestPointOnOther = collider.ClosestPointOnBounds(toCheckAt);
                 //we need to do this because we haven't actually moved so we the boxColliders position is still wrong.
@@ -226,11 +234,12 @@ public class PhysicsObject : MonoBehaviour
                 hitCollider = true;
             }
         }
-        Ray ray = new Ray(toCheckAt, -transform.up);
-        //Note: Do better ground collision checking later (standing at an edge won't count as being grounded
-        collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, (boxCol.bounds.extents.y) + .01f);
-        Debug.Log($"grounded: {collisionInfo.grounded}");
+        Ray groundRay = new Ray(toCheckAt, gravityDirection);
+        Ray topRay = new Ray(toCheckAt, -gravityDirection);
 
+        //Note: Do better ground collision checking later (standing at an edge won't count as being grounded
+        collisionInfo.grounded = Physics.Raycast(groundRay, out RaycastHit hit, boxCol.bounds.extents.y + .01f);
+        collisionInfo.collisionOnTop = Physics.Raycast(topRay, out RaycastHit hit2, boxCol.bounds.extents.y + .01f);
         if(collisionInfo.grounded) collisionInfo.standingOn = hit.collider.gameObject;
 
         //Debug.Log($"raylength: {((boxCol.bounds.min.y + toCheckAt.y - transform.position.y)) + .01f}");
@@ -286,9 +295,11 @@ public class PhysicsObject : MonoBehaviour
                 hitCollider = true;
             }
         }
-        Ray ray = new Ray(toCheckAt, Vector3.down);
-        collisionInfo.grounded = Physics.Raycast(ray, out RaycastHit hit, sphereCol.radius + .01f);
-        if (collisionInfo.grounded) collisionInfo.standingOn = hit.collider.gameObject;
+        Ray groundRay = new Ray(toCheckAt, gravityDirection);
+        Ray topRay = new Ray(toCheckAt, -gravityDirection);
+        collisionInfo.collisionOnTop = Physics.Raycast(topRay, out RaycastHit hit, sphereCol.radius + .01f);
+        collisionInfo.grounded = Physics.Raycast(groundRay, out RaycastHit hit2, sphereCol.radius + .01f);
+        if (collisionInfo.grounded) collisionInfo.standingOn = hit2.collider.gameObject;
 
         return toCheckAt;
     }
@@ -297,13 +308,9 @@ public class PhysicsObject : MonoBehaviour
 
     #region PublicFunctions
 
-    public void AddPush(Vector3 pushVector)
+    public void ChangeGravityDirection(Vector3 newDirection)
     {
-
-    }
-    public void SetPush(Vector3 pushVector)
-    {
-
+        gravityDirection = newDirection;
     }
 
     #endregion
@@ -329,15 +336,16 @@ public class PhysicsObject : MonoBehaviour
     public struct CollisionInfo
     {
         public bool grounded;
-        /// <summary>
-        /// The GameObject we are currently standing on. Will be null if we are not grounded.
-        /// </summary>
+        public bool collisionOnTop;
+        public bool collidingWithPlayer;
         public GameObject standingOn;
 
         public void ResetCollisionInfo()
         {
             grounded = false;
             standingOn = null;
+            collisionOnTop = false;
+            collidingWithPlayer = false;
         }
     }
 }

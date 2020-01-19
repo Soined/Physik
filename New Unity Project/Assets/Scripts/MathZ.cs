@@ -60,17 +60,17 @@ namespace MathExtensionZ
                 //boxBoundsInWorld = boxCollider.transform.TransformPoint(boxCollider.bounds.min);
                 boxBoundsInWorld = boxCollider.bounds.min;
                 returnPoint = new Vector3(
-                    pushDirection.x * boxBoundsInWorld.x,
-                    pushDirection.y * boxBoundsInWorld.y,
-                    pushDirection.z * boxBoundsInWorld.z); 
+                    Mathf.Abs(pushDirection.x) * boxBoundsInWorld.x,
+                    Mathf.Abs(pushDirection.y) * boxBoundsInWorld.y,
+                    Mathf.Abs(pushDirection.z) * boxBoundsInWorld.z); 
             } else
             {
                 //boxBoundsInWorld = boxCollider.transform.TransformPoint(boxCollider.bounds.max);
                 boxBoundsInWorld = boxCollider.bounds.max;
                 returnPoint = new Vector3(
-                    pushDirection.x * boxBoundsInWorld.x,
-                    pushDirection.y * boxBoundsInWorld.y,
-                    pushDirection.z * boxBoundsInWorld.z);
+                    Mathf.Abs(pushDirection.x) * boxBoundsInWorld.x,
+                    Mathf.Abs(pushDirection.y) * boxBoundsInWorld.y,
+                    Mathf.Abs(pushDirection.z) * boxBoundsInWorld.z);
             }
 
             //We set everything we didnt push back to our original point to have a straight pushVector

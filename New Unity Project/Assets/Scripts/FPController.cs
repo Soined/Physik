@@ -9,18 +9,44 @@ public class FPController : ControllerBase
     [SerializeField]
     private float jumpForce = 0.1f;
 
+    [SerializeField]
+    private int maxJumps = 2;
+
+    private int currentJumps = 0;
+
     private float currentJumpForce = 0f;
 
     protected bool isJumping;
 
+    private bool controllsEnabled = true;
+
     private GravityPhysics gravity;
+
+    private Vector3 startPosition;
+    private Quaternion startRotation;
 
     // Start is called before the first frame update
     void Start()
     {
         gravity = GetComponent<GravityPhysics>();
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = true;
+        Cursor.visible = false;
+        startPosition = transform.position;
+        startRotation = transform.rotation;
+    }
+    private void Update()
+    {
+        //Have to do it this way to get a proper nullCheck on the standingOn 
+        if(PhysicsObject.collisionInfo.grounded)
+        {
+            currentJumps = maxJumps;
+            if (PhysicsObject.collisionInfo.standingOn.tag == "KillGround") Die();
+        }
+
+        if(Input.GetKeyDown(KeyCode.R) && controllsEnabled)
+        {
+            Die();
+        }
     }
 
     public override Vector3 ApplyPhysics(Vector3 currentPosition)
@@ -30,6 +56,8 @@ public class FPController : ControllerBase
 
     public Vector3 PlayerInput(Vector3 position)
     {
+        if (!controllsEnabled) return position;
+
         Rotate();
 
         Move(ref position);
@@ -48,14 +76,20 @@ public class FPController : ControllerBase
 
     private void Jump(ref Vector3 position)
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && CanJump())
         {
             currentJumpForce = jumpForce;
+            currentJumps--;
             gravity.DisableGravity();
             Debug.Log($"GravityDisabled");
         }
 
-        currentJumpForce = Mathf.Clamp(currentJumpForce - (Time.deltaTime / 10), 0f, jumpForce);
+        if(PhysicsObject.collisionInfo.collisionOnTop)
+        {
+            currentJumpForce = 0f;
+        }
+
+        currentJumpForce = Mathf.Clamp(currentJumpForce - (Time.deltaTime / 6), 0f, jumpForce);
         position += Vector3.up * currentJumpForce;
 
         if(currentJumpForce <= 0f && !gravity.IsEnabled())
@@ -64,11 +98,32 @@ public class FPController : ControllerBase
             gravity.EnableGravity();
         }
     }
+    private bool CanJump()
+    {
+        //Might add more here later so it gets its own function already
+        if (currentJumps > 0) return true;
+        else return false;
+    }
 
     private void Rotate()
     {
         //so only the camera rotates up and down
         playerCam.transform.eulerAngles += new Vector3(-Input.GetAxis("Mouse Y"), 0.0f, 0.0f);
         transform.eulerAngles += new Vector3(0.0f, Input.GetAxis("Mouse X"), 0.0f);
+    }
+
+    public void Die()
+    {
+        transform.position = startPosition;
+        transform.rotation = startRotation;
+    }
+
+    public void DisableControlls()
+    {
+        controllsEnabled = false;
+    }
+    public void EnableControlls()
+    {
+        controllsEnabled = true;
     }
 }

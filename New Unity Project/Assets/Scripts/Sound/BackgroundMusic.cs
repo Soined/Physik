@@ -17,6 +17,7 @@ public class BackgroundMusic : MonoBehaviour
             backgroundSource.clip = backgroundMusic;
             backgroundSource.loop = true;
             backgroundSource.Play();
+            backgroundSource.volume = SoundManager.Instance.GetMusicVolume();
         }
     }
 }
