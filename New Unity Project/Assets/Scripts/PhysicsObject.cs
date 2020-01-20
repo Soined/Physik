@@ -11,7 +11,9 @@ public class PhysicsObject : MonoBehaviour
         Capsule,
         Box
     }
-
+    /// <summary>
+    /// The script won't work with this being null
+    /// </summary>
     public GameObject body;
 
     private ColliderType colType = ColliderType.Capsule;
@@ -19,11 +21,16 @@ public class PhysicsObject : MonoBehaviour
     public int collisionChecksPerFrame = 3;
 
     private Collider col;
-
+    /// <summary>
+    /// Should only be set by PhysicsObject.
+    /// </summary>
     public CollisionInfo collisionInfo;
 
     private Vector3 gravityDirection = Vector3.down;
 
+    /// <summary>
+    /// This is the List of all PhysicsComponent classes which take influence on this object
+    /// </summary>
     private List<PhysicsComponent> physicsComponents = new List<PhysicsComponent>();
 
     void Start()
@@ -43,12 +50,20 @@ public class PhysicsObject : MonoBehaviour
             colType = ColliderType.Sphere;
         }
     }
-
+    /// <summary>
+    /// All PhysicsComponent classes will call this in their parent class
+    /// This is so ApplyPhysics() will be in the right order
+    /// </summary>
+    /// <param name="physicsComponent"></param>
     public void RegisterComponent(PhysicsComponent physicsComponent)
     {
         physicsComponents.Add(physicsComponent);
         physicsComponents = physicsComponents.OrderBy(comp => comp.ExecutionOrder).ToList();
     }
+    /// <summary>
+    /// If the PhysicsComponent classes don't call this when they get destroyed, the script will error
+    /// </summary>
+    /// <param name="physicsComponent"></param>
     public void UnregisterComponent(PhysicsComponent physicsComponent)
     {
         physicsComponents.Remove(physicsComponent);
@@ -82,7 +97,7 @@ public class PhysicsObject : MonoBehaviour
 
     private void CheckCollision(ref Vector3 position)
     {
-        switch(colType)
+        switch(colType) //colType is set automatically based on which collider is found on the "body" Object
         {
             case ColliderType.Capsule:
                 CheckCapsuleCollision(ref position);
@@ -131,6 +146,7 @@ public class PhysicsObject : MonoBehaviour
     {
         for (int i = 0; i < collisionChecksPerFrame; i++)
         {
+            //For a capsule we need to calculate the highestPoint - radius and the lowestPoint + radius first, but at our next position
             Vector3 point1 = new Vector3(toCheckAt.x, toCheckAt.y - ((capCol.height / 2) - capCol.radius), toCheckAt.z);
             Vector3 point2 = new Vector3(toCheckAt.x, toCheckAt.y + ((capCol.height / 2) - capCol.radius), toCheckAt.z);
 
@@ -160,6 +176,7 @@ public class PhysicsObject : MonoBehaviour
                 hitCollider = true; // At this state we only know we hit anything. Could be optimized by returning the pushVector so we know where we hit it.
             }
         }
+        //Updating our collisionInfo like in any other Collision
         Ray groundRay = new Ray(toCheckAt, gravityDirection);
         Ray topRay = new Ray(toCheckAt, -gravityDirection);
         //Note: Do better ground collision checking later (standing on an edge won't count as being grounded
@@ -215,17 +232,19 @@ public class PhysicsObject : MonoBehaviour
                 //|| collider.tag == "Player"
                 if (collider.isTrigger || collider == col ) continue;
 
-                if(collider.tag == "Player")
+                if(collider.tag == "Player") //This is used for platforms so they won't crush the player
                 {
                     collisionInfo.collidingWithPlayer = true;
                 }
 
                 Vector3 closestPointOnOther = collider.ClosestPointOnBounds(toCheckAt);
-                //we need to do this because we haven't actually moved so we the boxColliders position is still wrong.
+                //we need to do this because we haven't actually moved so we the boxColliders position is still wrong
                 Vector3 collisionDirection = (closestPointOnOther - toCheckAt).normalized;
+                //We need the pushDirection to know into which direction we need to push to get out of the collider
                 Vector3 pushDirection = MathZ.GetMainDirectionForBox(boxCol, collisionDirection);
+                //This is the point on our Collider, which we need to know how far we need to move to get out of the collision
                 Vector3 pointOnCollider = MathZ.FindNearestPointOnBoxBounds(boxCol, toCheckAt, closestPointOnOther, pushDirection);
-
+                //After we just push towards the Direction for the distance from the other object to our collider
                 Vector3 pushVector = pushDirection * (pointOnCollider - closestPointOnOther).magnitude;
 
                 toCheckAt += pushVector; // we actually push us out of the other collider with this.
@@ -253,7 +272,8 @@ public class PhysicsObject : MonoBehaviour
         SphereCollider sphereCol = col as SphereCollider;
 
         Vector3 direction = position - transform.position;
-
+        //This is how often we need to check for collisions on our way to the destination which currently is "position"
+        //If the distance we move is less than the radius of our sphereCollider, we will only check once.
         int numberToCast = (int)(direction.magnitude / sphereCol.radius) + 1;
 
         for (int i = 0; i < numberToCast; i++)
@@ -265,7 +285,7 @@ public class PhysicsObject : MonoBehaviour
             if (hitCollider) //Will only be called if we hit a non-Trigger collider which also isn't attached on this object
             {
                 position = justChecked;
-                break;
+                break; //We break out of this because there is no point in checking for other collision in our way after hitting any
             }
         }
     }
@@ -285,16 +305,18 @@ public class PhysicsObject : MonoBehaviour
                 if (collider == col && collidingObjects.Length == 1) break;
                 //we will also find our own collider or triggers in which case we just skip it
                 if (collider.isTrigger || collider == col) continue;
-
+                //this is the point that is the closest to the Position that we currently want to move to on the collider we are colliding with
                 Vector3 closestPoint = collider.ClosestPoint(toCheckAt);
-
                 Vector3 collisionVector = closestPoint - toCheckAt;
+                //this vector is the Vector that we actually need to apply to our position to get out of the collider
                 Vector3 pushVector = collisionVector - (sphereCol.radius * collisionVector.normalized);
                 toCheckAt += pushVector;
-
+                //We set this true so our script won't keep checking for other positions on our way in this frame.
                 hitCollider = true;
             }
         }
+
+        //We also need to update our collisionInfo so other scripts can check on that for their dependencies
         Ray groundRay = new Ray(toCheckAt, gravityDirection);
         Ray topRay = new Ray(toCheckAt, -gravityDirection);
         collisionInfo.collisionOnTop = Physics.Raycast(topRay, out RaycastHit hit, sphereCol.radius + .01f);
@@ -307,31 +329,16 @@ public class PhysicsObject : MonoBehaviour
     #endregion
 
     #region PublicFunctions
-
+    /// <summary>
+    /// This Function should only be called from the GravityPhysics Component unless it is a Component that replaces it.
+    /// </summary>
+    /// <param name="newDirection"></param>
     public void ChangeGravityDirection(Vector3 newDirection)
     {
         gravityDirection = newDirection;
     }
 
     #endregion
-
-
-    //private void OnDrawGizmosSelected()
-    //{
-    //    switch(colType)
-    //    {
-    //        case ColliderType.Capsule:
-    //            Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - ((2 / 2) - .5f), transform.position.z), .5f);
-    //            Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y + ((2 / 2) - .5f), transform.position.z), .5f);
-    //            break;
-    //        case ColliderType.Box:
-    //            break;
-    //        case ColliderType.Sphere:
-    //            Gizmos.DrawSphere(transform.position, .5f);
-    //            break;
-    //    }
-
-    //}
 
     public struct CollisionInfo
     {

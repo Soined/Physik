@@ -168,7 +168,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1371897282}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4, y: -2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1371700594}
@@ -199,9 +199,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1371953124}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.925089, y: 14.068701, z: -9.259016}
-  m_LocalScale: {x: 0.7126162, y: 0.7126162, z: 0.7126162}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1371687142}
   m_Father: {fileID: 6497093792163922600}
@@ -326,11 +326,11 @@ MonoBehaviour:
   StartPosition: {x: 0, y: 0, z: 0}
   EndObject: {fileID: 1371897282}
   EndPosition: {x: 0, y: 0, z: 0}
-  Generations: 3
+  Generations: 4
   Duration: 0.03
-  ChaosFactor: 0.15
+  ChaosFactor: 0.022
   ManualMode: 0
-  Rows: 8
+  Rows: 15
   Columns: 1
   AnimationMode: 3
 --- !u!1 &277489732636819239
@@ -524,7 +524,6 @@ GameObject:
   - component: {fileID: 277489734433878361}
   - component: {fileID: 277489734433878363}
   - component: {fileID: 1429381890}
-  - component: {fileID: 1429381887}
   - component: {fileID: 1429381886}
   m_Layer: 8
   m_Name: CapsulePlayer
@@ -577,9 +576,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   order: 0
   gravityForce: 9.81
-  maxGravityForce: 3
+  maxGravityForce: 2
   startWithGravEnabled: 1
-  upGravityMaterial: {fileID: 0}
+  gravitySideways: 0
+  startWithGravFlipped: 0
+  flippedGravityMaterial: {fileID: 0}
 --- !u!114 &277489734433878363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -595,7 +596,8 @@ MonoBehaviour:
   order: 0
   speed: 15
   playerCam: {fileID: 277489732636819237}
-  jumpForce: 0.1
+  jumpForce: 0.15
+  maxJumps: 2
 --- !u!114 &1429381890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -614,20 +616,6 @@ MonoBehaviour:
   crosshairGreen: {fileID: 2800000, guid: 1dd0a7ca85ef6274a8c898f5cddb3e7f, type: 3}
   standardCrosshair: 0
   size: 40
---- !u!114 &1429381887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 277489734433878365}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 754cb9e8041fdf847945f264fb934f9d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  body: {fileID: 277489733699064829}
-  collisionChecksPerFrame: 3
 --- !u!114 &1429381886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -644,6 +632,9 @@ MonoBehaviour:
   shootingPoint: {fileID: 536216781}
   freezeShootKey: 323
   flipShootKey: 324
+  lightningParent: {fileID: 1371953124}
+  lightningEnd: {fileID: 1371897282}
+  shootCooldown: 0.4
 --- !u!1001 &277489734396702281
 PrefabInstance:
   m_ObjectHideFlags: 0

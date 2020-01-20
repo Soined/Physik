@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-[RequireComponent(typeof(GravityPhysics))]
 public class FPController : ControllerBase
 {
     [SerializeField]
@@ -58,7 +57,7 @@ public class FPController : ControllerBase
     {
         if (!controllsEnabled) return position;
 
-        Rotate();
+        Rotate(); //This is looking around and aiming with your gun
 
         Move(ref position);
         Jump(ref position);
@@ -80,10 +79,11 @@ public class FPController : ControllerBase
         {
             currentJumpForce = jumpForce;
             currentJumps--;
+            //We disable Gravity while jumping so we can calculate it without dependencies to it
             gravity.DisableGravity();
-            Debug.Log($"GravityDisabled");
         }
 
+        //So we don't keep jumping if we hit the ceiling
         if(PhysicsObject.collisionInfo.collisionOnTop)
         {
             currentJumpForce = 0f;
@@ -94,7 +94,7 @@ public class FPController : ControllerBase
 
         if(currentJumpForce <= 0f && !gravity.IsEnabled())
         {
-            Debug.Log($"GravityEnabled");
+            //We enable gravity after our Jump if it isn't enabled already
             gravity.EnableGravity();
         }
     }
@@ -107,11 +107,15 @@ public class FPController : ControllerBase
 
     private void Rotate()
     {
-        //so only the camera rotates up and down
+        //so only the camera rotates up and down, otherwise our CapsuleCollider would become problematic
         playerCam.transform.eulerAngles += new Vector3(-Input.GetAxis("Mouse Y"), 0.0f, 0.0f);
+        //but we rotate our whole object on the Y axis (left and right) so we keep looking in the right direction 
         transform.eulerAngles += new Vector3(0.0f, Input.GetAxis("Mouse X"), 0.0f);
     }
-
+    /// <summary>
+    /// Very basic right now, just resets the player to its start position.
+    /// No Checkpoints or anything at the moment, also cubes don't get moved back to their starting position.
+    /// </summary>
     public void Die()
     {
         transform.position = startPosition;

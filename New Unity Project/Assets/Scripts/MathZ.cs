@@ -83,54 +83,6 @@ namespace MathExtensionZ
 
             return returnPoint;
         }
-
-        public static float GetBoxSizeTowardsPoint(BoxCollider boxCollider, Vector3 position, Vector3 point)
-        {
-            Vector3 direction = (point - position).normalized;
-            Vector3 bounds = boxCollider.size / 2;
-            float distanceX = bounds.x / direction.x;
-            float distanceY = bounds.y / direction.y;
-            float distanceZ = bounds.z / direction.z;
-
-            if (distanceX < distanceY && distanceX < distanceZ)
-            {
-                return boxCollider.size.x;
-            } else if (distanceZ <= distanceX && distanceZ < distanceY)
-            {
-                return boxCollider.size.z;
-            } else
-            {
-                return boxCollider.size.y;
-            }
-        }
-
-        public static Vector3 GetMainDirectionForBox(BoxCollider boxCollider, Vector3 position, Vector3 point)
-        {
-            Vector3 direction = (point - position).normalized;
-            Vector3 bounds = boxCollider.size / 2;
-            float distanceX = Mathf.Abs(bounds.x / direction.x);
-            float distanceY = Mathf.Abs(bounds.y / direction.y);
-            float distanceZ = Mathf.Abs(bounds.z / direction.z);
-
-            if (distanceX < distanceY && distanceX < distanceZ)
-            {
-                if (direction.x > 0) return boxCollider.transform.right;
-
-                return -boxCollider.transform.right;
-            }
-            else if (distanceZ <= distanceX && distanceZ < distanceY)
-            {
-                if (direction.z > 0) return boxCollider.transform.forward;
-
-                return -boxCollider.transform.forward;
-            }
-            else
-            {
-                if (direction.y > 0) return boxCollider.transform.up;
-
-                return -boxCollider.transform.up;
-            }
-        }
         public static Vector3 GetMainDirectionForBox(BoxCollider boxCollider, Vector3 direction)
         {
             Vector3 bounds = boxCollider.size / 2;
@@ -156,13 +108,6 @@ namespace MathExtensionZ
 
                 return boxCollider.transform.up;
             }
-        }
-
-        public static float GetBoxDistanceTowardsPoint(BoxCollider boxCollider, Vector3 position, Vector3 point)
-        {
-            Vector3 pointOnBounds = FindNearestPointOnBox(boxCollider, position, point);
-
-            return (pointOnBounds - position).magnitude;
         }
     }
 }

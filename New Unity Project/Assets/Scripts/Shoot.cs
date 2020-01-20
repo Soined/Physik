@@ -11,6 +11,7 @@ public class Shoot : MonoBehaviour
     public GameObject lightningParent;
     public GameObject lightningEnd;
 
+    [SerializeField]
     private float shootCooldown = 0f;
     private float _shootCooldown = 0f;
     private bool isOnCD = false;
@@ -21,7 +22,6 @@ public class Shoot : MonoBehaviour
 
     private void Start()
     {
-        shootCooldown = .4f;
         lightningParent.SetActive(false);
     }
 
@@ -73,7 +73,7 @@ public class Shoot : MonoBehaviour
 
             if(hit.collider.GetComponentInParent<GravityPhysics>() != null)
             {
-                ActivateLightning(hit);
+                ActivateLightning(hit.point);
                 GravityPhysics other = hit.collider.GetComponentInParent<GravityPhysics>();
                 if(isFreeze)
                 {
@@ -93,13 +93,10 @@ public class Shoot : MonoBehaviour
         if (other.IsEnabled())
         {
             other.DisableGravity();
-            Debug.Log($"got it disabled");
         }
         else
         {
             other.EnableGravity();
-            Debug.Log($"got it enabled");
-
         }
     }
 
@@ -108,10 +105,10 @@ public class Shoot : MonoBehaviour
         other.FlipGravity();
     }
 
-    private void ActivateLightning(RaycastHit hit)
+    private void ActivateLightning(Vector3 destination)
     {
         lightningParent.SetActive(true);
-        lightningEnd.transform.position = hit.point;
+        lightningEnd.transform.position = destination;
         lightningIsActive = true;
     }
 }

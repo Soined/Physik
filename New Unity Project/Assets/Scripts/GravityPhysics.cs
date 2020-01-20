@@ -20,9 +20,9 @@ public class GravityPhysics : PhysicsComponent
     private bool startWithGravFlipped = false;
 
     [SerializeField]
-    private Material upGravityMaterial;
+    private Material flippedGravityMaterial;
 
-    private Material downGravityMaterial;
+    private Material startGravityMaterial;
     private MeshRenderer renderer;
 
     private float fallTime = 0f;
@@ -39,7 +39,7 @@ public class GravityPhysics : PhysicsComponent
     {
         gravityEnabled = startWithGravEnabled;
         renderer = PhysicsObject.body.GetComponent<MeshRenderer>();
-        downGravityMaterial = renderer.material;
+        startGravityMaterial = renderer.material;
 
         if(gravitySideways)
         {
@@ -120,12 +120,15 @@ public class GravityPhysics : PhysicsComponent
         gravityDirection *= -1;
         fallTime = 0f;
         PhysicsObject.ChangeGravityDirection(gravityDirection);
+
+        if (flippedGravityMaterial == null) return;
+
         if(Mathf.Sign(gravityDirection.x + gravityDirection.y + gravityDirection.z) < 0)
         {
-            renderer.material = downGravityMaterial;
+            renderer.material = startGravityMaterial;
         } else
         {
-            renderer.material = upGravityMaterial;
+            renderer.material = flippedGravityMaterial;
         }
     }
 
